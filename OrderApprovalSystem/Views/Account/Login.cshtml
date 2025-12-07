@@ -1,0 +1,57 @@
+@model OrderApprovalSystem.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_Layout";
+    var employees = ViewBag.Employees as List<OrderApprovalSystem.Models.Employee>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm mt-5">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0"><i class="bi bi-box-arrow-in-right me-2"></i>Login</h4>
+            </div>
+            <div class="card-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                <form asp-action="Login" method="post">
+                    <div class="mb-3">
+                        <label asp-for="EmployeeID" class="form-label">Select Employee</label>
+                        <select asp-for="EmployeeID" class="form-select">
+                            <option value="0">-- Select an Employee --</option>
+                            @if (employees != null)
+                            {
+                                @foreach (var emp in employees)
+                                {
+                                    <option value="@emp.EmployeeID">@emp.FullName (@emp.DepartmentName)</option>
+                                }
+                            }
+                        </select>
+                        <div class="form-text">Select your employee account to login.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>Siemens Order Approval System</small>
+            </div>
+        </div>
+    </div>
+</div>

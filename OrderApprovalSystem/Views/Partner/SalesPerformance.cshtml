@@ -1,0 +1,61 @@
+@model List<OrderApprovalSystem.ViewModels.PartnerSalesViewModel>
+
+@{
+    ViewData["Title"] = "Partner Sales Performance";
+}
+
+<h1><i class="bi bi-graph-up me-2"></i>Partner Sales Performance</h1>
+<p class="text-muted">Revenue and order analysis by partner</p>
+<hr />
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Partner</th>
+                        <th class="text-center">Total Orders</th>
+                        <th class="text-end">Total Revenue</th>
+                        <th>Top Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var partner in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@partner.PartnerID">
+                                    <strong>@partner.PartnerName</strong>
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary">@partner.TotalOrders</span>
+                            </td>
+                            <td class="text-end">
+                                <strong class="text-success">@partner.TotalRevenue.ToString("C")</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark">@partner.TopCategory</span>
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@partner.PartnerID" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-primary">
+                        <th>Total</th>
+                        <th class="text-center">@Model.Sum(p => p.TotalOrders)</th>
+                        <th class="text-end">@Model.Sum(p => p.TotalRevenue).ToString("C")</th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

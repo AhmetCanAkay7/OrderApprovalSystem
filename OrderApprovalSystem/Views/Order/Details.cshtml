@@ -1,0 +1,175 @@
+@model OrderApprovalSystem.ViewModels.OrderDetailsViewModel
+
+@{
+    ViewData["Title"] = $"Order #{Model.Order.OrderID}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-receipt me-2"></i>Order #@Model.Order.OrderID</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Orders
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Order Header -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Order Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Partner:</dt>
+                            <dd class="col-sm-8">@Model.Order.PartnerName</dd>
+
+                            <dt class="col-sm-4">Order Date:</dt>
+                            <dd class="col-sm-8">@Model.Order.CreationTime.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                            <dt class="col-sm-4">Orderer:</dt>
+                            <dd class="col-sm-8">@Model.Order.OrdererFullName</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8">
+                                @switch (Model.Order.Status)
+                                {
+                                    case 0:
+                                        <span class="badge bg-success fs-6">@Model.Order.StatusText</span>
+                                        break;
+                                    case 1:
+                                        <span class="badge bg-warning text-dark fs-6">@Model.Order.StatusText</span>
+                                        break;
+                                    case 2:
+                                        <span class="badge bg-danger fs-6">@Model.Order.StatusText</span>
+                                        break;
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Current Step:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info text-dark fs-6">@Model.Order.CurrentStepText</span>
+                            </dd>
+
+                            <dt class="col-sm-4">Total Amount:</dt>
+                            <dd class="col-sm-8"><strong class="text-success fs-5">@Model.Order.TotalPrice.ToString("C")</strong></dd>
+                        </dl>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Order.OrderNote))
+                {
+                    <hr />
+                    <p><strong>Notes:</strong> @Model.Order.OrderNote</p>
+                }
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Code</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td><code>@(item.ProductCode ?? "N/A")</code></td>
+                                    <td class="text-end">@item.OrderItemPrice.ToString("C")</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end"><strong>@item.LineTotal.ToString("C")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-primary">
+                                <td colspan="4" class="text-end"><strong>Grand Total:</strong></td>
+                                <td class="text-end"><strong class="fs-5">@Model.Order.TotalPrice.ToString("C")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Approval Status -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-check2-square me-2"></i>Approval Status</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var approver in Model.Approvers)
+                {
+                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                        <div class="me-3">
+                            <i class="bi bi-person-fill text-primary fs-4"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong>@(approver.RoleName ?? "Approver")</strong><br />
+                            <small class="text-muted">@approver.EmployeeName</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Approval Action -->
+        @if (Model.CanUserApprove && Model.Order.Status == 1)
+        {
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Your Approval (@Model.CurrentUserRole)</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Approve" method="post">
+                        <input type="hidden" name="OrderID" value="@Model.Order.OrderID" />
+                        <input type="hidden" name="EmployeeID" value="@Model.CurrentUserEmployeeID" />
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="IsApproved" value="true" class="btn btn-success">
+                                <i class="bi bi-check-lg me-1"></i>Approve
+                            </button>
+                            <button type="submit" name="IsApproved" value="false" class="btn btn-danger">
+                                <i class="bi bi-x-lg me-1"></i>Decline
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

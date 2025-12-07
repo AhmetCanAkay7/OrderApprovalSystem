@@ -1,0 +1,123 @@
+@model OrderApprovalSystem.ViewModels.CreateOrderViewModel
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1><i class="bi bi-plus-circle me-2"></i>Create New Order</h1>
+        <hr />
+
+        <form asp-action="Create" method="post" id="orderForm">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Partner Selection</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="PartnerID" class="form-label">Select Partner <span class="text-danger">*</span></label>
+                        <select asp-for="PartnerID" class="form-select" asp-items="@(new SelectList(Model.AvailablePartners, "PartnerID", "PartnerName"))">
+                            <option value="">-- Select a Partner --</option>
+                        </select>
+                        <span asp-validation-for="PartnerID" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label">Order Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Optional notes for this order..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h5>
+                    <button type="button" class="btn btn-light btn-sm" onclick="addOrderItem()">
+                        <i class="bi bi-plus"></i> Add Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="orderItems">
+                        <div class="row mb-3 order-item">
+                            <div class="col-md-7">
+                                <label class="form-label">Product</label>
+                                <select name="productIds" class="form-select product-select">
+                                    <option value="">-- Select Product --</option>
+                                    @foreach (var product in Model.AvailableProducts)
+                                    {
+                                        <option value="@product.ProductID" data-price="@product.Price">
+                                            @product.ProductName (@product.CategoryName) - @product.Price.ToString("C")
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantities" class="form-control quantity-input" min="1" value="1" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeOrderItem(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle me-1"></i>Create Order
+                </button>
+                <a asp-action="Index" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Order Information</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    When you create an order, the system will automatically:
+                </p>
+                <ul class="small">
+                    <li>Assign approvers for Commercial, Technical, and Paraf approval steps</li>
+                    <li>Calculate total amount based on selected products</li>
+                    <li>Set order status to "Pending Approval"</li>
+                </ul>
+                <hr />
+                <h6>Approval Flow:</h6>
+                <ol class="small">
+                    <li><strong>Step 0:</strong> Commercial Approval</li>
+                    <li><strong>Step 1:</strong> Technical Approval</li>
+                    <li><strong>Step 2:</strong> Paraf (Final) Approval</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addOrderItem() {
+            const template = document.querySelector('.order-item').cloneNode(true);
+            template.querySelector('.product-select').value = '';
+            template.querySelector('.quantity-input').value = 1;
+            document.getElementById('orderItems').appendChild(template);
+        }
+
+        function removeOrderItem(btn) {
+            const items = document.querySelectorAll('.order-item');
+            if (items.length > 1) {
+                btn.closest('.order-item').remove();
+            } else {
+                alert('At least one item is required.');
+            }
+        }
+    </script>
+}

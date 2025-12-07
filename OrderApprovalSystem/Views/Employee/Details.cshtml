@@ -1,0 +1,49 @@
+@model OrderApprovalSystem.Models.Employee
+
+@{
+    ViewData["Title"] = Model.FullName;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-person-badge me-2"></i>@Model.FullName</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Directory
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Employee Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Employee ID:</dt>
+                    <dd class="col-sm-8">@Model.EmployeeID</dd>
+
+                    <dt class="col-sm-4">Full Name:</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8"><a href="mailto:@Model.Email">@Model.Email</a></dd>
+
+                    <dt class="col-sm-4">Phone:</dt>
+                    <dd class="col-sm-8">@(Model.Phone ?? "N/A")</dd>
+
+                    <dt class="col-sm-4">Department:</dt>
+                    <dd class="col-sm-8"><span class="badge bg-info text-dark">@Model.DepartmentName</span></dd>
+
+                    <dt class="col-sm-4">Manager:</dt>
+                    <dd class="col-sm-8">@(Model.ManagerName ?? "N/A")</dd>
+
+                    <dt class="col-sm-4">Role:</dt>
+                    <dd class="col-sm-8">@(Model.RoleName ?? "N/A")</dd>
+
+                    <dt class="col-sm-4">Start Date:</dt>
+                    <dd class="col-sm-8">@Model.StartDate.ToString("dd/MM/yyyy")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
