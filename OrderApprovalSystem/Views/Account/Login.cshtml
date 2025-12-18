@@ -2,56 +2,137 @@
 @{
     ViewData["Title"] = "Login";
     Layout = "_Layout";
-    var employees = ViewBag.Employees as List<OrderApprovalSystem.Models.Employee>;
 }
 
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm mt-5">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0"><i class="bi bi-box-arrow-in-right me-2"></i>Login</h4>
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Siemens Order System</h3>
+                <p class="mb-0 mt-2 opacity-75">Welcome! Please login to continue.</p>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 @if (TempData["Error"] != null)
                 {
-                    <div class="alert alert-danger">
-                        @TempData["Error"]
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
 
                 @if (TempData["Success"] != null)
                 {
-                    <div class="alert alert-success">
-                        @TempData["Success"]
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
 
                 <form asp-action="Login" method="post">
-                    <div class="mb-3">
-                        <label asp-for="EmployeeID" class="form-label">Select Employee</label>
-                        <select asp-for="EmployeeID" class="form-select">
-                            <option value="0">-- Select an Employee --</option>
-                            @if (employees != null)
-                            {
-                                @foreach (var emp in employees)
-                                {
-                                    <option value="@emp.EmployeeID">@emp.FullName (@emp.DepartmentName)</option>
-                                }
-                            }
-                        </select>
-                        <div class="form-text">Select your employee account to login.</div>
+                    <!-- Login Type Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">I am a:</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="LoginType" id="typePartner" value="Partner" 
+                                   @(Model.LoginType == "Partner" ? "checked" : "")>
+                            <label class="btn btn-outline-primary" for="typePartner">
+                                <i class="bi bi-building me-1"></i> Partner
+                            </label>
+
+                            <input type="radio" class="btn-check" name="LoginType" id="typeEmployee" value="Employee"
+                                   @(Model.LoginType == "Employee" || Model.LoginType == null ? "checked" : "")>
+                            <label class="btn btn-outline-primary" for="typeEmployee">
+                                <i class="bi bi-person-badge me-1"></i> Employee
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="d-grid">
+                    <!-- Partner Login Form -->
+                    <div id="partnerForm" class="login-form" style="display: none;">
+                        <div class="mb-3">
+                            <label for="PartnerName" class="form-label">
+                                <i class="bi bi-building me-1"></i>Partner Name
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="PartnerName" name="PartnerName" 
+                                   value="@Model.PartnerName" placeholder="e.g., BMW Group">
+                            <div class="form-text">Enter your company name as registered with Siemens.</div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Login Form -->
+                    <div id="employeeForm" class="login-form">
+                        <div class="mb-3">
+                            <label for="EmployeeEmail" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Email Address
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="EmployeeEmail" name="EmployeeEmail" 
+                                   value="@Model.EmployeeEmail" placeholder="e.g., john.doe@siemens.com">
+                            <div class="form-text">Enter your Siemens email address.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="bi bi-box-arrow-in-right me-1"></i>Login
                         </button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center text-muted">
-                <small>Siemens Order Approval System</small>
+            <div class="card-footer text-center text-muted py-3">
+                <small><i class="bi bi-shield-lock me-1"></i>Siemens Order Approval System v2.0</small>
+            </div>
+        </div>
+
+        <!-- Quick Login Examples -->
+        <div class="card mt-4 border-info">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-info-circle me-1"></i>Demo Accounts
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Partners:</strong></p>
+                <ul class="list-unstyled mb-3">
+                    <li><code>BMW Group</code></li>
+                    <li><code>Mercedes-Benz Group</code></li>
+                    <li><code>Volkswagen AG</code></li>
+                </ul>
+                <p class="mb-2"><strong>Employees (with approval role):</strong></p>
+                <ul class="list-unstyled mb-3">
+                    <li><code>barbara.hummler@siemens.com</code> (Commercial)</li>
+                    <li><code>thomas.bayer@siemens.com</code> (Technical)</li>
+                    <li><code>roland.busch@siemens.com</code> (Paraf)</li>
+                </ul>
+                <p class="mb-2"><strong>Employees (no approval role):</strong></p>
+                <ul class="list-unstyled">
+                    <li><code>cedric.neike@siemens.com</code></li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const partnerRadio = document.getElementById('typePartner');
+            const employeeRadio = document.getElementById('typeEmployee');
+            const partnerForm = document.getElementById('partnerForm');
+            const employeeForm = document.getElementById('employeeForm');
+
+            function toggleForms() {
+                if (partnerRadio.checked) {
+                    partnerForm.style.display = 'block';
+                    employeeForm.style.display = 'none';
+                } else {
+                    partnerForm.style.display = 'none';
+                    employeeForm.style.display = 'block';
+                }
+            }
+
+            partnerRadio.addEventListener('change', toggleForms);
+            employeeRadio.addEventListener('change', toggleForms);
+            
+            // Initial state
+            toggleForms();
+        });
+    </script>
+}

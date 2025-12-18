@@ -1,0 +1,281 @@
+@model OrderApprovalSystem.ViewModels.PartnerCreateOrderViewModel
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-cart-plus me-2"></i>Create New Order</h2>
+        <p class="text-muted mb-0">@Model.PartnerName - Add products to your order</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Partner")" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["StockError"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <h5><i class="bi bi-exclamation-triangle me-2"></i>@TempData["StockError"]</h5>
+        <ul class="mb-0 mt-2">
+            @{
+                var details = TempData["StockErrorDetails"]?.ToString()?.Split('|') ?? Array.Empty<string>();
+                foreach (var detail in details)
+                {
+                    <li>@detail</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="CreateOrder" method="post" id="orderForm">
+    <input type="hidden" asp-for="PartnerID" />
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Product Selection -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Select Products</h5>
+                </div>
+                <div class="card-body">
+                    <div id="productList">
+                        <div class="product-row mb-3 p-3 border rounded" data-index="0">
+                            <div class="row align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label">Product</label>
+                                    <select name="productIds" class="form-select product-select" required>
+                                        <option value="">-- Select Product --</option>
+                                        @foreach (var product in Model.AvailableProducts)
+                                        {
+                                            <option value="@product.ProductID" 
+                                                    data-price="@product.Price" 
+                                                    data-stock="@product.MinDeliveryTime">
+                                                @product.ProductName - €@product.Price.ToString("N2")
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" name="quantities" class="form-control quantity-input" 
+                                           min="1" value="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-outline-danger w-100 remove-product" disabled>
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stock-status mt-2" style="display: none;"></div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="addProduct" class="btn btn-outline-primary mt-3">
+                        <i class="bi bi-plus-circle me-1"></i>Add Another Product
+                    </button>
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-sticky me-2"></i>Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="PaymentTerm" class="form-label">Payment Term</label>
+                                <select asp-for="PaymentTerm" class="form-select">
+                                    <option value="Net 30">Net 30</option>
+                                    <option value="Net 45">Net 45</option>
+                                    <option value="Net 60">Net 60</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Currency" class="form-label">Currency</label>
+                                <select asp-for="Currency" class="form-select">
+                                    <option value="EUR">EUR - Euro</option>
+                                    <option value="USD">USD - US Dollar</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label">Order Notes (Optional)</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" 
+                                  placeholder="Add any special instructions or notes..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="orderSummary">
+                        <p class="text-muted text-center">Select products to see summary</p>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Estimated Total:</strong>
+                        <strong id="totalPrice">€0.00</strong>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" id="checkStockBtn" class="btn btn-outline-info w-100 mb-2">
+                        <i class="bi bi-box me-1"></i>Check Stock Availability
+                    </button>
+                    <button type="submit" class="btn btn-success w-100 btn-lg">
+                        <i class="bi bi-check-circle me-1"></i>Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Stock Warning Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Stock Warning</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="stockModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let productIndex = 1;
+
+        // Add new product row
+        document.getElementById('addProduct').addEventListener('click', function() {
+            const template = document.querySelector('.product-row').cloneNode(true);
+            template.dataset.index = productIndex++;
+            template.querySelector('.product-select').value = '';
+            template.querySelector('.quantity-input').value = 1;
+            template.querySelector('.remove-product').disabled = false;
+            template.querySelector('.stock-status').style.display = 'none';
+            document.getElementById('productList').appendChild(template);
+            updateRemoveButtons();
+        });
+
+        // Remove product row
+        document.getElementById('productList').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-product') || e.target.closest('.remove-product')) {
+                const row = e.target.closest('.product-row');
+                if (document.querySelectorAll('.product-row').length > 1) {
+                    row.remove();
+                    updateSummary();
+                }
+            }
+        });
+
+        // Update on product/quantity change
+        document.getElementById('productList').addEventListener('change', updateSummary);
+        document.getElementById('productList').addEventListener('input', updateSummary);
+
+        function updateRemoveButtons() {
+            const rows = document.querySelectorAll('.product-row');
+            rows.forEach((row, index) => {
+                row.querySelector('.remove-product').disabled = rows.length === 1;
+            });
+        }
+
+        function updateSummary() {
+            const rows = document.querySelectorAll('.product-row');
+            let total = 0;
+            let summaryHtml = '';
+
+            rows.forEach(row => {
+                const select = row.querySelector('.product-select');
+                const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
+                
+                if (select.value && quantity > 0) {
+                    const option = select.options[select.selectedIndex];
+                    const price = parseFloat(option.dataset.price) || 0;
+                    const lineTotal = price * quantity;
+                    total += lineTotal;
+                    
+                    summaryHtml += `<div class="d-flex justify-content-between mb-2">
+                        <span>${option.text.split(' - ')[0]} x ${quantity}</span>
+                        <span>€${lineTotal.toFixed(2)}</span>
+                    </div>`;
+                }
+            });
+
+            document.getElementById('orderSummary').innerHTML = summaryHtml || '<p class="text-muted text-center">Select products to see summary</p>';
+            document.getElementById('totalPrice').textContent = '€' + total.toFixed(2);
+        }
+
+        // Check stock button
+        document.getElementById('checkStockBtn').addEventListener('click', async function() {
+            const rows = document.querySelectorAll('.product-row');
+            let hasErrors = false;
+            let errorMessages = [];
+
+            for (const row of rows) {
+                const select = row.querySelector('.product-select');
+                const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
+                const stockStatus = row.querySelector('.stock-status');
+
+                if (select.value && quantity > 0) {
+                    try {
+                        const response = await fetch('/Partner/CheckStock', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ productId: parseInt(select.value), quantity: quantity })
+                        });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            stockStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Stock available (${result.availableQuantity} in stock)</span>`;
+                        } else {
+                            stockStatus.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${result.message}</span>`;
+                            hasErrors = true;
+                            errorMessages.push(`${result.productName}: ${result.message}`);
+                        }
+                        stockStatus.style.display = 'block';
+                    } catch (error) {
+                        console.error('Stock check failed:', error);
+                    }
+                }
+            }
+
+            if (hasErrors) {
+                document.getElementById('stockModalBody').innerHTML = 
+                    '<p>The following products have insufficient stock:</p><ul>' + 
+                    errorMessages.map(m => `<li>${m}</li>`).join('') + '</ul>';
+                new bootstrap.Modal(document.getElementById('stockModal')).show();
+            } else if (errorMessages.length === 0) {
+                alert('Please select at least one product.');
+            } else {
+                alert('All products are in stock!');
+            }
+        });
+    </script>
+}

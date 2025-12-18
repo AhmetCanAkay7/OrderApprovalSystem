@@ -1,0 +1,95 @@
+@model OrderApprovalSystem.ViewModels.EmployeeWelcomeViewModel
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="text-center mb-5">
+            <div class="display-1 text-primary mb-3">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <h1 class="display-4">@Model.WelcomeMessage, @Model.Employee.Name!</h1>
+            <p class="lead text-muted">Welcome to the Siemens Order Approval System</p>
+        </div>
+
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Your Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-person me-2"></i>Full Name</td>
+                                <td><strong>@Model.Employee.FullName</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-envelope me-2"></i>Email</td>
+                                <td>@Model.Employee.Email</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-telephone me-2"></i>Phone</td>
+                                <td>@(Model.Employee.Phone ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-at me-2"></i>Username</td>
+                                <td>@Model.Employee.Username</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-building me-2"></i>Department</td>
+                                <td><strong>@Model.Employee.DepartmentName</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-person-gear me-2"></i>Manager</td>
+                                <td>@(Model.Employee.ManagerName ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-calendar me-2"></i>Start Date</td>
+                                <td>@Model.Employee.StartDate.ToString("dd MMM yyyy")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted"><i class="bi bi-shield me-2"></i>Approval Role</td>
+                                <td>
+                                    <span class="badge bg-secondary">No Approval Role</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 border-info">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <i class="bi bi-info-circle text-info fs-2"></i>
+                    </div>
+                    <div class="col">
+                        <h6 class="mb-1">About Your Access</h6>
+                        <p class="mb-0 text-muted">
+                            You currently don't have an approval role assigned. You can view the system but cannot 
+                            approve orders. Contact your manager if you need approval permissions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted mb-2">
+                <i class="bi bi-clock me-1"></i>
+                Current Time: @Model.CurrentTime.ToString("dddd, dd MMMM yyyy HH:mm")
+            </p>
+            <a href="@Url.Action("Logout", "Account")" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+            </a>
+        </div>
+    </div>
+</div>

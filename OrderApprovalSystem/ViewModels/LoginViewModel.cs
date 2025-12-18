@@ -2,6 +2,7 @@ namespace OrderApprovalSystem.ViewModels;
 
 public class LoginViewModel
 {
-    public int EmployeeID { get; set; }
-    public string? Email { get; set; }
+    public string LoginType { get; set; } = "Employee"; // "Partner" or "Employee"
+    public string? PartnerName { get; set; }
+    public string? EmployeeEmail { get; set; }
 }

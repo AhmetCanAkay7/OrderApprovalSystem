@@ -407,4 +407,85 @@ public class OrderRepository
         var row = dataTable.Rows[0];
         return (true, Convert.ToInt32(row["EmployeeID"]), row["RoleName"]?.ToString());
     }
+
+    /// <summary>
+    /// Gets all orders for a specific partner.
+    /// </summary>
+    public List<DashboardViewModel> GetOrdersByPartner(int partnerId)
+    {
+        const string sql = @"
+            SELECT 
+                o.OrderID,
+                p.PartnerName,
+                o.CreationTime,
+                o.TotalPrice,
+                o.Status,
+                o.CurrentStepValue,
+                CASE o.Status 
+                    WHEN 0 THEN 'Completed'
+                    WHEN 1 THEN 'Pending Approval'
+                    ELSE 'Unknown'
+                END AS StatusText,
+                CASE o.CurrentStepValue
+                    WHEN 0 THEN 'Commercial Approval'
+                    WHEN 1 THEN 'Technical Approval'
+                    WHEN 2 THEN 'Paraf Approval'
+                    WHEN 3 THEN 'All Approvals Complete'
+                    ELSE 'Unknown'
+                END AS CurrentStepText,
+                o.OrdererName + ' ' + o.OrdererSurname AS OrdererFullName
+            FROM [ORDER] o
+            INNER JOIN PARTNER p ON o.PartnerID = p.PartnerID
+            WHERE o.PartnerID = @PartnerID
+            ORDER BY o.CreationTime DESC";
+
+        var parameters = new[]
+        {
+            new SqlParameter("@PartnerID", partnerId)
+        };
+
+        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
+        var result = new List<DashboardViewModel>();
+
+        foreach (DataRow row in dataTable.Rows)
+        {
+            result.Add(new DashboardViewModel
+            {
+                OrderID = Convert.ToInt32(row["OrderID"]),
+                PartnerName = row["PartnerName"].ToString() ?? string.Empty,
+                CreationTime = Convert.ToDateTime(row["CreationTime"]),
+                TotalPrice = row["TotalPrice"] == DBNull.Value ? 0 : Convert.ToDecimal(row["TotalPrice"]),
+                Status = Convert.ToInt32(row["Status"]),
+                CurrentStepValue = Convert.ToInt32(row["CurrentStepValue"]),
+                StatusText = row["StatusText"].ToString() ?? string.Empty,
+                CurrentStepText = row["CurrentStepText"].ToString() ?? string.Empty,
+                OrdererFullName = row["OrdererFullName"].ToString() ?? string.Empty
+            });
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Creates an order for a partner (without approvers assignment).
+    /// </summary>
+    public int CreateOrderForPartner(int partnerId, string partnerName, string? orderNote, string? paymentTerm, string? currency)
+    {
+        const string sql = @"
+            INSERT INTO [ORDER] (PartnerID, CurrentStepValue, OrdererName, OrdererSurname, Status, CreationTime, TotalPrice, PaymentTerm, Currency, OrderNote)
+            OUTPUT INSERTED.OrderID
+            VALUES (@PartnerID, 0, @OrdererName, '', 1, GETDATE(), 0, @PaymentTerm, @Currency, @OrderNote)";
+
+        var parameters = new[]
+        {
+            new SqlParameter("@PartnerID", partnerId),
+            new SqlParameter("@OrdererName", partnerName),
+            new SqlParameter("@PaymentTerm", (object?)paymentTerm ?? DBNull.Value),
+            new SqlParameter("@Currency", (object?)currency ?? DBNull.Value),
+            new SqlParameter("@OrderNote", (object?)orderNote ?? DBNull.Value)
+        };
+
+        var result = _sqlHelper.ExecuteScalar(sql, parameters);
+        return Convert.ToInt32(result);
+    }
 }

@@ -63,6 +63,32 @@ public class PartnerRepository
         return MapRowToPartner(dataTable.Rows[0]);
     }
 
+    /// <summary>
+    /// Gets partner by name (for login).
+    /// </summary>
+    public Partner? GetPartnerByName(string partnerName)
+    {
+        const string sql = @"
+            SELECT 
+                PartnerID,
+                PartnerName,
+                Phone
+            FROM PARTNER
+            WHERE PartnerName = @PartnerName";
+
+        var parameters = new[]
+        {
+            new SqlParameter("@PartnerName", partnerName)
+        };
+
+        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
+
+        if (dataTable.Rows.Count == 0)
+            return null;
+
+        return MapRowToPartner(dataTable.Rows[0]);
+    }
+
     private Partner MapRowToPartner(DataRow row)
     {
         return new Partner

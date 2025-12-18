@@ -194,4 +194,57 @@ public class StockRepository
             Price = row["Price"] == DBNull.Value ? 0 : Convert.ToDecimal(row["Price"])
         };
     }
+
+    /// <summary>
+    /// Checks if there is enough stock for the requested quantity.
+    /// Returns (isAvailable, availableQuantity, productName)
+    /// </summary>
+    public (bool IsAvailable, int AvailableQuantity, string ProductName) CheckStockAvailability(int productId, int requestedQuantity)
+    {
+        const string sql = @"
+            SELECT 
+                ISNULL(SUM(s.Quantity), 0) AS TotalQuantity,
+                p.ProductName
+            FROM PRODUCT p
+            LEFT JOIN STOCK s ON p.ProductID = s.ProductID
+            WHERE p.ProductID = @ProductID
+            GROUP BY p.ProductName";
+
+        var parameters = new[]
+        {
+            new SqlParameter("@ProductID", productId)
+        };
+
+        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
+
+        if (dataTable.Rows.Count == 0)
+            return (false, 0, "Unknown Product");
+
+        var row = dataTable.Rows[0];
+        var availableQuantity = Convert.ToInt32(row["TotalQuantity"]);
+        var productName = row["ProductName"].ToString() ?? "Unknown";
+
+        return (availableQuantity >= requestedQuantity, availableQuantity, productName);
+    }
+
+    /// <summary>
+    /// Checks stock availability for multiple products.
+    /// Returns list of products with insufficient stock.
+    /// </summary>
+    public List<(int ProductId, string ProductName, int RequestedQuantity, int AvailableQuantity)> CheckMultipleStockAvailability(
+        List<(int ProductId, int Quantity)> items)
+    {
+        var insufficientStock = new List<(int, string, int, int)>();
+
+        foreach (var item in items)
+        {
+            var (isAvailable, available, productName) = CheckStockAvailability(item.ProductId, item.Quantity);
+            if (!isAvailable)
+            {
+                insufficientStock.Add((item.ProductId, productName, item.Quantity, available));
+            }
+        }
+
+        return insufficientStock;
+    }
 }
