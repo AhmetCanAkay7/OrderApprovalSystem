@@ -38,7 +38,7 @@ public class OrderController : Controller
     public IActionResult Details(int id)
     {
         var viewModel = _orderRepository.GetOrderDetails(id);
-        
+
         if (viewModel.Order.OrderID == 0)
         {
             return NotFound();
@@ -100,6 +100,9 @@ public class OrderController : Controller
 
         // Create the order
         var orderId = _orderRepository.CreateOrder(model.PartnerID, ordererName, ordererSurname, model.Notes, null, null);
+
+        // Assign random approvers using stored procedure
+        _orderRepository.AssignRandomApprovers(orderId);
 
         // Add order items
         if (productIds != null && quantities != null)

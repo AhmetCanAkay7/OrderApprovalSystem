@@ -185,6 +185,9 @@ public class PartnerController : Controller
             model.PaymentTerm,
             model.Currency);
 
+        // Assign random approvers using stored procedure
+        _orderRepository.AssignRandomApprovers(orderId);
+
         // Add order items
         foreach (var item in itemsToCheck)
         {

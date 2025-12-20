@@ -128,43 +128,6 @@ public class StockRepository
     }
 
     /// <summary>
-    /// Gets stock for a specific warehouse.
-    /// </summary>
-    public List<Stock> GetStockByWarehouse(int warehouseId)
-    {
-        const string sql = @"
-            SELECT 
-                s.StockID,
-                s.ProductID,
-                s.WarehouseID,
-                s.Quantity,
-                s.LastUpdateDate,
-                p.ProductName,
-                w.WarehouseName,
-                p.Price
-            FROM STOCK s
-            INNER JOIN PRODUCT p ON s.ProductID = p.ProductID
-            INNER JOIN WAREHOUSE w ON s.WarehouseID = w.WarehouseID
-            WHERE s.WarehouseID = @WarehouseID AND s.Quantity > 0
-            ORDER BY p.ProductName";
-
-        var parameters = new[]
-        {
-            new SqlParameter("@WarehouseID", warehouseId)
-        };
-
-        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
-        var result = new List<Stock>();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            result.Add(MapRowToStock(row));
-        }
-
-        return result;
-    }
-
-    /// <summary>
     /// Gets total stock quantity for a product.
     /// </summary>
     public int GetTotalStockForProduct(int productId)

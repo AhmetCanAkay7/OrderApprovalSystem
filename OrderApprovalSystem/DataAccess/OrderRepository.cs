@@ -252,24 +252,6 @@ public class OrderRepository
     }
 
     /// <summary>
-    /// Assigns an approver to an order.
-    /// </summary>
-    public void AssignApprover(int orderId, int employeeId)
-    {
-        const string sql = @"
-            INSERT INTO ORDER_APPROVER (OrderID, EmployeeID)
-            VALUES (@OrderID, @EmployeeID)";
-
-        var parameters = new[]
-        {
-            new SqlParameter("@OrderID", orderId),
-            new SqlParameter("@EmployeeID", employeeId)
-        };
-
-        _sqlHelper.ExecuteNonQuery(sql, parameters);
-    }
-
-    /// <summary>
     /// Adds an item to an order.
     /// </summary>
     public void AddOrderItem(int orderId, int productId, int quantity, string? note, string? currency)
@@ -487,5 +469,19 @@ public class OrderRepository
 
         var result = _sqlHelper.ExecuteScalar(sql, parameters);
         return Convert.ToInt32(result);
+    }
+
+    /// <summary>
+    /// Assigns random approvers to an order using the stored procedure.
+    /// This assigns one employee for each role: Commercial (1), Technical (2), Paraf (3).
+    /// </summary>
+    public void AssignRandomApprovers(int orderId)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@OrderID", orderId)
+        };
+
+        _sqlHelper.ExecuteStoredProcedure("sp_AssignRandomApprovers", parameters);
     }
 }

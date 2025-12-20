@@ -15,43 +15,6 @@ public class EmployeeRepository
     }
 
     /// <summary>
-    /// Gets all employees.
-    /// </summary>
-    public List<Employee> GetAllEmployees()
-    {
-        const string sql = @"
-            SELECT 
-                e.EmployeeID,
-                e.Username,
-                e.Email,
-                e.Name,
-                e.Surname,
-                e.Phone,
-                e.StartDate,
-                e.DepartmentID,
-                e.RoleID,
-                e.ManagerID,
-                d.DepartmentName,
-                m.Name + ' ' + m.Surname AS ManagerName,
-                ar.RoleName
-            FROM EMPLOYEE e
-            INNER JOIN DEPARTMENT d ON e.DepartmentID = d.DepartmentID
-            LEFT JOIN EMPLOYEE m ON e.ManagerID = m.EmployeeID
-            LEFT JOIN APPROVAL_ROLE ar ON e.RoleID = ar.RoleID
-            ORDER BY e.Surname, e.Name";
-
-        var dataTable = _sqlHelper.GetDataTable(sql);
-        var result = new List<Employee>();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            result.Add(MapRowToEmployee(row));
-        }
-
-        return result;
-    }
-
-    /// <summary>
     /// Gets employee directory with organizational information.
     /// </summary>
     public List<EmployeeDirectoryViewModel> GetEmployeeDirectory()

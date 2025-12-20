@@ -101,44 +101,6 @@ public class ProductRepository
         return result;
     }
 
-    /// <summary>
-    /// Gets products by category.
-    /// </summary>
-    public List<Product> GetProductsByCategory(int categoryId)
-    {
-        const string sql = @"
-            SELECT 
-                p.ProductID,
-                p.ProductName,
-                p.Description,
-                p.Price,
-                p.Unit,
-                p.ProductCode,
-                p.MinDeliveryTime,
-                p.Color,
-                p.CategoryID,
-                c.CategoryName
-            FROM PRODUCT p
-            INNER JOIN CATEGORY c ON p.CategoryID = c.CategoryID
-            WHERE p.CategoryID = @CategoryID
-            ORDER BY p.ProductName";
-
-        var parameters = new[]
-        {
-            new SqlParameter("@CategoryID", categoryId)
-        };
-
-        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
-        var result = new List<Product>();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            result.Add(MapRowToProduct(row));
-        }
-
-        return result;
-    }
-
     private Product MapRowToProduct(DataRow row)
     {
         return new Product
