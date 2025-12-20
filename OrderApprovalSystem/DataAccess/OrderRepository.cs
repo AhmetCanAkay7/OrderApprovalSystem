@@ -311,47 +311,6 @@ public class OrderRepository
     }
 
     /// <summary>
-    /// Gets order by ID.
-    /// </summary>
-    public Order? GetOrderById(int orderId)
-    {
-        const string sql = @"
-            SELECT 
-                o.*,
-                p.PartnerName
-            FROM [ORDER] o
-            INNER JOIN PARTNER p ON o.PartnerID = p.PartnerID
-            WHERE o.OrderID = @OrderID";
-
-        var parameters = new[]
-        {
-            new SqlParameter("@OrderID", orderId)
-        };
-
-        var dataTable = _sqlHelper.GetDataTable(sql, parameters);
-
-        if (dataTable.Rows.Count == 0)
-            return null;
-
-        var row = dataTable.Rows[0];
-        return new Order
-        {
-            OrderID = Convert.ToInt32(row["OrderID"]),
-            PartnerID = Convert.ToInt32(row["PartnerID"]),
-            CurrentStepValue = Convert.ToInt32(row["CurrentStepValue"]),
-            OrdererName = row["OrdererName"] == DBNull.Value ? null : row["OrdererName"].ToString(),
-            OrdererSurname = row["OrdererSurname"] == DBNull.Value ? null : row["OrdererSurname"].ToString(),
-            Status = Convert.ToInt32(row["Status"]),
-            CreationTime = Convert.ToDateTime(row["CreationTime"]),
-            TotalPrice = row["TotalPrice"] == DBNull.Value ? 0 : Convert.ToDecimal(row["TotalPrice"]),
-            PaymentTerm = row["PaymentTerm"] == DBNull.Value ? null : row["PaymentTerm"].ToString(),
-            Currency = row["Currency"] == DBNull.Value ? null : row["Currency"].ToString(),
-            OrderNote = row["OrderNote"] == DBNull.Value ? null : row["OrderNote"].ToString(),
-            PartnerName = row["PartnerName"].ToString()
-        };
-    }
-
-    /// <summary>
     /// Checks if an employee can approve an order at the current step.
     /// Only allows approval when employee's role matches the order's current step.
     /// RoleID mapping: 1=Commercial(step 0), 2=Technical(step 1), 3=Paraf(step 2)

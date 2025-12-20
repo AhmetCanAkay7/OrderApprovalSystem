@@ -1,7 +1,6 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
 using OrderApprovalSystem.Models;
-using OrderApprovalSystem.ViewModels;
 
 namespace OrderApprovalSystem.DataAccess;
 
@@ -12,48 +11,6 @@ public class EmployeeRepository
     public EmployeeRepository(SqlHelper sqlHelper)
     {
         _sqlHelper = sqlHelper;
-    }
-
-    /// <summary>
-    /// Gets employee directory with organizational information.
-    /// </summary>
-    public List<EmployeeDirectoryViewModel> GetEmployeeDirectory()
-    {
-        const string sql = @"
-            SELECT 
-                e.EmployeeID,
-                e.Name + ' ' + e.Surname AS FullName,
-                e.Email,
-                e.Phone,
-                d.DepartmentName,
-                m.Name + ' ' + m.Surname AS ManagerName,
-                ar.RoleName,
-                e.StartDate
-            FROM EMPLOYEE e
-            INNER JOIN DEPARTMENT d ON e.DepartmentID = d.DepartmentID
-            LEFT JOIN EMPLOYEE m ON e.ManagerID = m.EmployeeID
-            LEFT JOIN APPROVAL_ROLE ar ON e.RoleID = ar.RoleID
-            ORDER BY d.DepartmentName, e.Surname, e.Name";
-
-        var dataTable = _sqlHelper.GetDataTable(sql);
-        var result = new List<EmployeeDirectoryViewModel>();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            result.Add(new EmployeeDirectoryViewModel
-            {
-                EmployeeID = Convert.ToInt32(row["EmployeeID"]),
-                FullName = row["FullName"].ToString() ?? string.Empty,
-                Email = row["Email"].ToString() ?? string.Empty,
-                Phone = row["Phone"] == DBNull.Value ? null : row["Phone"].ToString(),
-                DepartmentName = row["DepartmentName"].ToString() ?? string.Empty,
-                ManagerName = row["ManagerName"] == DBNull.Value ? null : row["ManagerName"].ToString(),
-                RoleName = row["RoleName"] == DBNull.Value ? null : row["RoleName"].ToString(),
-                StartDate = Convert.ToDateTime(row["StartDate"])
-            });
-        }
-
-        return result;
     }
 
     /// <summary>
@@ -133,38 +90,6 @@ public class EmployeeRepository
 
         return MapRowToEmployee(dataTable.Rows[0]);
     }
-
-    /// <summary>
-    /// Gets all departments.
-    /// </summary>
-    public List<Department> GetAllDepartments()
-    {
-        const string sql = @"
-            SELECT DepartmentID, DepartmentName, Country, City, State, ZipCode, Phone, Email 
-            FROM DEPARTMENT 
-            ORDER BY DepartmentName";
-
-        var dataTable = _sqlHelper.GetDataTable(sql);
-        var result = new List<Department>();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            result.Add(new Department
-            {
-                DepartmentID = Convert.ToInt32(row["DepartmentID"]),
-                DepartmentName = row["DepartmentName"].ToString() ?? string.Empty,
-                Country = row["Country"] == DBNull.Value ? null : row["Country"].ToString(),
-                City = row["City"] == DBNull.Value ? null : row["City"].ToString(),
-                State = row["State"] == DBNull.Value ? null : row["State"].ToString(),
-                ZipCode = row["ZipCode"] == DBNull.Value ? null : row["ZipCode"].ToString(),
-                Phone = row["Phone"] == DBNull.Value ? null : row["Phone"].ToString(),
-                Email = row["Email"] == DBNull.Value ? null : row["Email"].ToString()
-            });
-        }
-
-        return result;
-    }
-
     private Employee MapRowToEmployee(DataRow row)
     {
         return new Employee

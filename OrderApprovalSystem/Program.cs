@@ -16,7 +16,7 @@ builder.Services.AddSession(options =>
 
 // Configure SqlHelper as singleton
 var connectionString = builder.Configuration.GetConnectionString("SiemensContext")
-    ?? "Server=localhost;Database=Siemens_Order_Approval;Trusted_Connection=True;TrustServerCertificate=True;";
+    ?? "Server=localhost\\SQLEXPRESS;Database=Siemens_Order_Approval;Trusted_Connection=True;TrustServerCertificate=True;";
 
 builder.Services.AddSingleton(sp => SqlHelper.GetInstance(connectionString));
 
